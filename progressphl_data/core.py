@@ -17,7 +17,7 @@ def load_meta_data(
     return json.load((meta_data_dir / f"{tag}.json").open("r"))
 
 
-def get_spi_data(version: Literal["1", "2"] = "2") -> pd.DataFrame:
+def get_spi_data(version: Literal["1", "2", "3"] = "3") -> pd.DataFrame:
     """Load processed SPI data."""
 
     # Data dir for this version
@@ -35,6 +35,25 @@ def get_spi_data(version: Literal["1", "2"] = "2") -> pd.DataFrame:
         ).set_index(["geoid", "tract_name"])
     elif version == "2":
         filename = data_dir / "ProgressPHL_Recalculated_v1.xlsx"
+
+        # Read SPI variables and combine with indicators
+        spi_data = (
+            pd.read_excel(
+                filename,
+                sheet_name="SPI",
+                dtype={"geoid": str, "tract_name": str},
+            )
+            .set_index(["geoid", "tract_name"])
+            .join(
+                pd.read_excel(
+                    filename,
+                    sheet_name="rawvalues_indicators",
+                    dtype={"geoid": str, "tract_name": str},
+                ).set_index(["geoid", "tract_name"])
+            )
+        )
+    elif version == "3":
+        filename = data_dir / "progressphl-update-dataset.xlsx"
 
         # Read SPI variables and combine with indicators
         spi_data = (
@@ -75,7 +94,7 @@ def get_spi_data(version: Literal["1", "2"] = "2") -> pd.DataFrame:
     hierarchy = load_meta_data(tag="hierarchy", version=version)
     for k, v in hierarchy.items():
         sel = spi_data["variable"].isin(v)
-        assert k in spi_data["variable"].unique()
+        assert any(spi_data["variable"].isin(v)), f"No variables from hierarchy parent '{k}' found in data"
         spi_data.loc[sel, "parent"] = k
 
     # Figure out which ones are inverted
