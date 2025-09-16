@@ -94,7 +94,9 @@ def get_spi_data(version: Literal["1", "2", "3"] = "3") -> pd.DataFrame:
     hierarchy = load_meta_data(tag="hierarchy", version=version)
     for k, v in hierarchy.items():
         sel = spi_data["variable"].isin(v)
-        assert any(spi_data["variable"].isin(v)), f"No variables from hierarchy parent '{k}' found in data"
+        if not any(sel):
+            print(f"Warning: No variables from hierarchy parent '{k}' found in data. Skipping.")
+            continue
         spi_data.loc[sel, "parent"] = k
 
     # Figure out which ones are inverted
