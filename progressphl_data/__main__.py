@@ -4,7 +4,6 @@
 from io import StringIO
 from pathlib import Path
 
-import boto3
 import click
 import simplejson as json
 from dotenv import find_dotenv, load_dotenv
@@ -13,8 +12,6 @@ from .census_indicators import get_census_indicators, get_trend_variables
 from .core import get_spi_data, load_meta_data
 from .crosswalk import *
 from .geo import *
-
-BUCKET = "spi-dashboard-data"
 
 here = Path(__file__).parent.absolute()
 
@@ -34,8 +31,6 @@ def etl(version="2"):
     # Load the credentials
     load_dotenv(find_dotenv())
 
-    # Initialize the s3 resource
-    s3_resource = boto3.resource("s3")
 
     # Setup local output folder
     local_output_folder = (
@@ -74,10 +69,6 @@ def etl(version="2"):
     json.dump(out, buffer, ignore_nan=True)
     json.dump(out, (local_output_folder / "spi-data.json").open("w"), ignore_nan=True)
 
-    # Upload to s3
-    s3_resource.Object(BUCKET, f"v{version}/spi-data.json").put(
-        Body=buffer.getvalue(), ACL="public-read"
-    )
 
     # Do the metadata
     tags = ["aliases", "hierarchy", "definitions"]
@@ -89,11 +80,6 @@ def etl(version="2"):
     buffer = StringIO()
     json.dump(meta, buffer)
     json.dump(meta, (local_output_folder / "spi-metadata.json").open("w"))
-
-    # Upload to s3
-    s3_resource.Object(BUCKET, f"v{version}/spi-metadata.json").put(
-        Body=buffer.getvalue(), ACL="public-read"
-    )
 
     # Census indicators
     data = get_census_indicators()
@@ -117,11 +103,6 @@ def etl(version="2"):
         out.to_json(buffer, orient="records")
         out.to_json(census_output_folder / f"{name}.json", orient="records")
 
-        # Upload to s3
-        s3_resource.Object(BUCKET, f"v{version}/census-data/{name}.json").put(
-            Body=buffer.getvalue(), ACL="public-read"
-        )
-
     # Trend variables
     data = get_trend_variables()
 
@@ -140,10 +121,6 @@ def etl(version="2"):
         out.to_json(buffer, orient="records")
         out.to_json(trend_output_folder / f"{name}.json", orient="records")
 
-        # Upload to s3
-        s3_resource.Object(BUCKET, f"v{version}/trends/{name}.json").put(
-            Body=buffer.getvalue(), ACL="public-read"
-        )
 
 
 @cli.command()
