@@ -2,3 +2,5 @@
 notebooks
 progressphl_data/indicators
 ~*
+__pycache__
+.DS_Store
