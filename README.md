@@ -61,5 +61,11 @@ poetry install
 poetry run progressphl-data etl --version 2
 ```
 
+4. If you get a certificate warning, run like this:
+
+```bash
+export SSL_CERT_FILE=$(poetry run python -c "import certifi; print(certifi.where())")
+poetry run progressphl-data etl --version 3
+```
 
 
