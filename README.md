@@ -5,7 +5,7 @@
 The main data processing script:
 
 ```bash
-poetry run progressphl-data etl --version 2
+poetry run progressphl-data etl --version 3
 ```
 
 You can specify the SPI version to use with the `--version` flag. The default is `2`.
@@ -58,7 +58,7 @@ poetry install
 3. Run the ETL script. In the main repo folder:
 
 ```bash
-poetry run progressphl-data etl --version 2
+poetry run progressphl-data etl --version 3
 ```
 
 4. If you get a certificate warning, run like this:
